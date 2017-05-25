@@ -15,7 +15,14 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * Created by drunkengranite on 5/10/17.
+ * @author by drunkengranite
+ * @date Created  on 5/20/17.
+ * @description the android app for the game synonymity, where a user guesses synonyms
+ * @class java 17.11
+ * @class_description for use in the java class at the srjc 17.11 under sean kirkpatrick,
+ * this is a java class at srjc
+ * @maintainer drunkengranite
+ * @license set ref MIT
  */
 
 public class GetWords extends AsyncTask<Void, Void, ArrayList<WordProblem>>
@@ -28,7 +35,7 @@ public class GetWords extends AsyncTask<Void, Void, ArrayList<WordProblem>>
 
     public interface onReturn
     {
-        void Callback(ArrayList<WordProblem> input);
+        void onCallback(ArrayList<WordProblem> input);
     }
 
     public onReturn delegate;
@@ -71,7 +78,7 @@ public class GetWords extends AsyncTask<Void, Void, ArrayList<WordProblem>>
     {
         if (delegate != null)
         {
-            delegate.Callback(input);
+            delegate.onCallback(input);
         }
     }
 

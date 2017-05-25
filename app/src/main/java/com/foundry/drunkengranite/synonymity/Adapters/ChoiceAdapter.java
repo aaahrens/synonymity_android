@@ -16,7 +16,14 @@ import java.util.Collections;
 import me.grantland.widget.AutofitTextView;
 
 /**
- * Created by drunkengranite on 5/17/17.
+ * @author by drunkengranite
+ * @date Created  on 5/20/17.
+ * @description the android app for the game synonymity, where a user guesses synonyms
+ * @class java 17.11
+ * @class_description for use in the java class at the srjc 17.11 under sean kirkpatrick,
+ * this is a java class at srjc
+ * @maintainer drunkengranite
+ * @license set ref MIT
  */
 
 public class ChoiceAdapter extends BaseAdapter
@@ -53,7 +60,8 @@ public class ChoiceAdapter extends BaseAdapter
         if (convertView == null)
         {
             localView = (RelativeLayout) LayoutInflater.from(parent.getContext()).inflate(R.layout.choice_button, null);
-        } else
+        }
+        else
         {
             localView = (RelativeLayout) convertView;
         }
@@ -90,12 +98,15 @@ public class ChoiceAdapter extends BaseAdapter
         ArrayList<String> newChoices;
         if (problem.getOptions().size() > 10)
         {
+//            beacuse I send wayyyyy to many in the api
             newChoices = new ArrayList<>(problem.getOptions().subList(0, 8));
-        } else
+        }
+        else
         {
             newChoices = problem.getOptions();
         }
         newChoices.add(problem.getCorrectWord());
+//        prevent duplicate positions
         Collections.shuffle(newChoices);
         this.choices = newChoices;
         notifyDataSetChanged();

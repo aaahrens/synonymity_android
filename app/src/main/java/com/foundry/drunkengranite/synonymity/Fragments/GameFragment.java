@@ -8,7 +8,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.foundry.drunkengranite.synonymity.Adapters.ChoiceAdapter;
@@ -19,14 +18,23 @@ import com.foundry.drunkengranite.synonymity.R;
 import java.util.ArrayList;
 
 
+/**
+ * @author by drunkengranite
+ * @date Created  on 5/20/17.
+ * @description the android app for the game synonymity, where a user guesses synonyms
+ * @class java 17.11
+ * @class_description for use in the java class at the srjc 17.11 under sean kirkpatrick,
+ * this is a java class at srjc
+ * @maintainer drunkengranite
+ * @license set ref MIT
+ */
+
 public class GameFragment extends Fragment implements GetWords.onReturn, ChoiceAdapter.onClick
 {
-
     private StateKeeper stateKeeper;
     private GridView options;
     private ArrayList<WordProblem> problems;
     private ChoiceAdapter adapter;
-    private RelativeLayout fragmentParent;
     private TextView currentWord;
     private boolean isLoading;
     private GetWords asyncActions;
@@ -35,9 +43,19 @@ public class GameFragment extends Fragment implements GetWords.onReturn, ChoiceA
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
+//      initialize the game state manager (statekeeper), the empty adapter for the options grid,
+//      and the current stack of problems. i.e. i want no null exceptions
+//      note the statekeeper keeps track of the game, not the current word, ie the score and the timer
+
         this.stateKeeper = new StateKeeper(this);
         this.problems = new ArrayList<>();
+
+//        callback of the adapter in the isCorrect method, where the onclick loads the next problems
         this.adapter = new ChoiceAdapter(getContext(), this);
+
+//        we show the loading screen before dispatching the new asyn fetch
+//        data is handled in @Method Callback
         showLoading();
         this.asyncActions = new GetWords(this);
         this.asyncActions.execute();
@@ -49,17 +67,15 @@ public class GameFragment extends Fragment implements GetWords.onReturn, ChoiceA
     {
         // Inflate the layout for this fragment
         View toReturn = inflater.inflate(R.layout.fragment_game, container, false);
+//        initialize the gridrow, no null errors for the adapter
         this.options = (GridView) toReturn.findViewById(R.id.gridView);
         this.options.setAdapter(this.adapter);
-        this.fragmentParent = (RelativeLayout) toReturn.findViewById(R.id.fragment_parent);
 
-        if (isLoading)
-        {
-            showLoading();
-        }
+
         this.currentWord = (TextView) toReturn.findViewById(R.id.current_word);
         this.stateKeeper.setScoreContainer((TextView) toReturn.findViewById(R.id.score));
         this.stateKeeper.setTimerContainer((TextView) toReturn.findViewById(R.id.timer));
+
         return toReturn;
     }
 
@@ -67,6 +83,7 @@ public class GameFragment extends Fragment implements GetWords.onReturn, ChoiceA
     {
         if (wordProblems.size() == 0)
         {
+            System.out.println("error occured");
             return;
         }
         this.problems.addAll(wordProblems);
@@ -78,8 +95,10 @@ public class GameFragment extends Fragment implements GetWords.onReturn, ChoiceA
     public void showLoading()
     {
         this.isLoading = true;
-        if (this.fragmentParent != null && getFragmentManager() != null)
+        if (getChildFragmentManager() != null)
         {
+//          we use the child fragment manager because we want this to get removed if the back button
+//          is pressed
             getChildFragmentManager()
                     .beginTransaction()
                     .add(R.id.fragment_parent, LoadingFragment.newInstance())
@@ -90,20 +109,29 @@ public class GameFragment extends Fragment implements GetWords.onReturn, ChoiceA
 
     public void removeLoading()
     {
+        System.out.println("here");
         this.isLoading = false;
-        if (this.fragmentParent != null && getChildFragmentManager() != null)
+        if (getChildFragmentManager() != null)
         {
+            System.out.println("poping");
+//            pops it out
+            System.out.println(getChildFragmentManager().getBackStackEntryCount());
             getChildFragmentManager().popBackStack();
+
         }
     }
 
 
     @Override
-    public void Callback(ArrayList<WordProblem> input)
+    public void onCallback(ArrayList<WordProblem> input)
     {
+//        we remove the async action, since it is done and ready to be garbage
         this.asyncActions = null;
+//        remove the loading screen and insert the new problems into out problems queueu
         removeLoading();
         addProblems(input);
+
+//        start the game
         stateKeeper.reset();
     }
 
@@ -112,19 +140,24 @@ public class GameFragment extends Fragment implements GetWords.onReturn, ChoiceA
     {
         if (isCorrect)
         {
+//            pops a new one into the adapter, resets the state keeper
             if (this.problems.size() != 0)
             {
                 WordProblem newProb = this.problems.remove(0);
                 this.currentWord.setText(newProb.getCurrentWord());
                 this.adapter.setNewProblem(newProb);
                 stateKeeper.reset();
-            } else
+            }
+//            needs more the queue, start it uo again
+            else
             {
                 stateKeeper.setPaused();
                 showLoading();
-                new GetWords(this).execute();
+                this.asyncActions = new GetWords(this);
+                this.asyncActions.execute();
             }
-        } else
+        }
+        else
         {
             kill();
         }
@@ -206,15 +239,22 @@ public class GameFragment extends Fragment implements GetWords.onReturn, ChoiceA
 
         void kill()
         {
-            this.countDownTimer.cancel();
-            this.timerContainer.setText("(✖╭╮✖)");
+//            I know this is an anti pattern, will fix later when integrating urban dictionary
+//            todo cleaner code
+            if (this.countDownTimer != null)
+            {
+                this.countDownTimer.cancel();
+            }
+            if (this.timerContainer != null)
+            {
+                this.timerContainer.setText("(✖╭╮✖)");
+            }
         }
 
         void setScoreContainer(TextView scoreContainer)
         {
             this.scoreContainer = scoreContainer;
         }
-
 
         void setTimerContainer(TextView timerContainer)
         {
@@ -251,6 +291,7 @@ public class GameFragment extends Fragment implements GetWords.onReturn, ChoiceA
         super.onAttach(context);
     }
 
+    //  cleans up the delegates so no null errors or random async tasks for null managers to throw
     @Override
     public void onDetach()
     {
